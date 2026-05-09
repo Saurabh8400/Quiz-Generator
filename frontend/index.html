@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuizCraft AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --surface2: #1a1a26;
+      --border: #2a2a40;
+      --accent: #6c63ff;
+      --accent2: #ff6b9d;
+      --accent3: #43e8b0;
+      --text: #f0f0ff;
+      --text-muted: #7878a0;
+      --text-dim: #4a4a70;
+      --danger: #ff4f6a;
+      --success: #43e8b0;
+      --warning: #ffb347;
+      --radius: 14px;
+      --radius-sm: 8px;
+      --shadow: 0 4px 32px rgba(108,99,255,0.10);
+    }
+
+    html, body, #root { height: 100%; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 10%, rgba(108,99,255,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 80% 80%, rgba(255,107,157,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 30% at 60% 40%, rgba(67,232,176,0.05) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #root { position: relative; z-index: 1; }
+
+    /* ─── Typography ─────────────────────────────── */
+    h1, h2, h3, h4 { font-family: 'Syne', sans-serif; font-weight: 700; }
+
+    /* ─── Animations ─────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.92); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes countUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes shimmer {
+      0%   { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+    @keyframes glow {
+      0%,100% { box-shadow: 0 0 0 0 rgba(108,99,255,0.4); }
+      50%      { box-shadow: 0 0 24px 6px rgba(108,99,255,0.25); }
+    }
+
+    .animate-fadeUp   { animation: fadeUp 0.5s ease both; }
+    .animate-scaleIn  { animation: scaleIn 0.35s ease both; }
+    .animate-slideIn  { animation: slideIn 0.4s ease both; }
+    .stagger-1 { animation-delay: 0.05s; }
+    .stagger-2 { animation-delay: 0.10s; }
+    .stagger-3 { animation-delay: 0.15s; }
+    .stagger-4 { animation-delay: 0.20s; }
+    .stagger-5 { animation-delay: 0.25s; }
+
+    /* ─── Layout ─────────────────────────────────── */
+    .app-shell {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      min-height: 100vh;
+    }
+    .app-shell.no-sidebar { grid-template-columns: 1fr; }
+
+    /* ─── Sidebar ────────────────────────────────── */
+    .sidebar {
+      background: rgba(18,18,26,0.9);
+      border-right: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      display: flex;
+      flex-direction: column;
+      padding: 28px 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+    .sidebar-logo {
+      padding: 0 24px 28px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.35rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    .sidebar-nav { flex: 1; display: flex; flex-direction: column; gap: 4px; padding: 0 12px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 14px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.18s ease;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      border: none; background: transparent; width: 100%; text-align: left;
+    }
+    .nav-item:hover { background: rgba(108,99,255,0.1); color: var(--text); }
+    .nav-item.active { background: rgba(108,99,255,0.18); color: var(--accent); }
+    .nav-item .nav-icon { font-size: 1.1rem; width: 22px; text-align: center; }
+
+    .sidebar-bottom { padding: 16px 12px 0; border-top: 1px solid var(--border); margin-top: auto; }
+    .user-chip {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+    }
+    .user-avatar {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.8rem; color: white;
+      flex-shrink: 0;
+    }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-size: 0.85rem; font-weight: 600; truncate: true; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-role { font-size: 0.72rem; color: var(--text-muted); }
+    .logout-btn {
+      background: none; border: none; color: var(--text-muted);
+      cursor: pointer; padding: 4px; font-size: 1rem;
+      transition: color 0.15s;
+    }
+    .logout-btn:hover { color: var(--danger); }
+
+    /* ─── Main Content ───────────────────────────── */
+    .main { padding: 40px; overflow-y: auto; }
+    .page-header { margin-bottom: 36px; }
+    .page-title { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
+    .page-subtitle { color: var(--text-muted); font-size: 0.95rem; }
+
+    /* ─── Cards ──────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .card:hover { border-color: rgba(108,99,255,0.4); box-shadow: var(--shadow); }
+    .card-glass {
+      background: rgba(18,18,26,0.7);
+      backdrop-filter: blur(12px);
+    }
+
+    /* ─── Stats Grid ─────────────────────────────── */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      animation: fadeUp 0.5s ease both;
+    }
+    .stat-label { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+    .stat-value { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; }
+    .stat-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; }
+    .stat-accent-violet  { border-top: 2px solid var(--accent); }
+    .stat-accent-pink    { border-top: 2px solid var(--accent2); }
+    .stat-accent-teal    { border-top: 2px solid var(--accent3); }
+    .stat-accent-orange  { border-top: 2px solid var(--warning); }
+
+    /* ─── Buttons ────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem; font-weight: 500;
+      cursor: pointer; border: none;
+      transition: all 0.18s ease;
+      text-decoration: none;
+      line-height: 1;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #8b81ff);
+      color: white;
+      box-shadow: 0 2px 12px rgba(108,99,255,0.3);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(108,99,255,0.45); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-danger { background: rgba(255,79,106,0.15); color: var(--danger); border: 1px solid rgba(255,79,106,0.3); }
+    .btn-danger:hover { background: rgba(255,79,106,0.25); }
+    .btn-ghost { background: transparent; color: var(--text-muted); }
+    .btn-ghost:hover { color: var(--text); background: var(--surface2); }
+    .btn-sm { padding: 7px 14px; font-size: 0.82rem; }
+    .btn-lg { padding: 14px 28px; font-size: 1rem; }
+    .btn-full { width: 100%; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+    /* ─── Forms ──────────────────────────────────── */
+    .form-group { margin-bottom: 18px; }
+    .form-label {
+      display: block; font-size: 0.82rem; font-weight: 500;
+      color: var(--text-muted); margin-bottom: 7px; letter-spacing: 0.03em;
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 11px 14px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      transition: border-color 0.18s, box-shadow 0.18s;
+      outline: none;
+      appearance: none;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(108,99,255,0.18);
+    }
+    .form-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%237878a0' d='M1 1l5 5 5-5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 38px; cursor: pointer; }
+    .form-textarea { resize: vertical; min-height: 90px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-error { font-size: 0.78rem; color: var(--danger); margin-top: 5px; }
+    .form-hint  { font-size: 0.78rem; color: var(--text-dim); margin-top: 5px; }
+
+    /* Toggle switch */
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .toggle-label { font-size: 0.85rem; font-weight: 500; }
+    .toggle-desc { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+    .toggle { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; cursor: pointer; inset: 0;
+      background: var(--border);
+      border-radius: 24px;
+      transition: 0.25s;
+    }
+    .toggle-slider::before {
+      content: ''; position: absolute;
+      width: 18px; height: 18px;
+      left: 3px; bottom: 3px;
+      background: white; border-radius: 50%;
+      transition: 0.25s;
+    }
+    .toggle input:checked + .toggle-slider { background: var(--accent); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+    /* Range slider */
+    .range-row { display: flex; align-items: center; gap: 12px; }
+    .form-range { flex: 1; appearance: none; height: 4px; background: var(--border); border-radius: 4px; outline: none; }
+    .form-range::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; background: var(--accent); border-radius: 50%; cursor: pointer; box-shadow: 0 0 0 4px rgba(108,99,255,0.2); }
+    .range-value { min-width: 32px; text-align: center; font-weight: 600; font-size: 0.9rem; color: var(--accent); }
+
+    /* Difficulty pills */
+    .pill-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pill {
+      padding: 7px 16px;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      font-size: 0.82rem; font-weight: 500;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.15s;
+    }
+    .pill.selected-easy   { border-color: var(--accent3);  background: rgba(67,232,176,0.12);  color: var(--accent3);  }
+    .pill.selected-medium { border-color: var(--warning);  background: rgba(255,179,71,0.12);   color: var(--warning);  }
+    .pill.selected-hard   { border-color: var(--accent2);  background: rgba(255,107,157,0.12);  color: var(--accent2);  }
+    .pill:hover:not(.selected-easy):not(.selected-medium):not(.selected-hard) { border-color: var(--accent); color: var(--accent); }
+
+    /* ─── Auth Pages ──────────────────────────────── */
+    .auth-wrap {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 32px 16px;
+    }
+    .auth-box {
+      width: 100%; max-width: 440px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px;
+      animation: scaleIn 0.4s ease;
+    }
+    .auth-logo { text-align: center; margin-bottom: 32px; }
+    .auth-logo-icon {
+      width: 60px; height: 60px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+      margin: 0 auto 16px;
+      animation: glow 3s ease-in-out infinite;
+    }
+    .auth-title { font-size: 1.7rem; margin-bottom: 6px; }
+    .auth-subtitle { color: var(--text-muted); font-size: 0.9rem; }
+    .auth-divider { text-align: center; color: var(--text-dim); font-size: 0.82rem; margin: 20px 0; }
+    .auth-switch { text-align: center; font-size: 0.85rem; color: var(--text-muted); margin-top: 20px; }
+    .auth-switch a { color: var(--accent); cursor: pointer; text-decoration: none; font-weight: 500; }
+
+    /* ─── Quiz Cards Grid ────────────────────────── */
+    .quiz-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+    .quiz-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      animation: fadeUp 0.4s ease both;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .quiz-card:hover { border-color: rgba(108,99,255,0.5); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(108,99,255,0.12); }
+    .quiz-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .quiz-card-title { font-family: 'Syne', sans-serif; font-size: 1.0rem; font-weight: 700; line-height: 1.3; flex: 1; }
+    .quiz-card-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .badge-easy    { background: rgba(67,232,176,0.15);  color: var(--accent3);  }
+    .badge-medium  { background: rgba(255,179,71,0.15);  color: var(--warning);  }
+    .badge-hard    { background: rgba(255,107,157,0.15); color: var(--accent2);  }
+    .badge-public  { background: rgba(108,99,255,0.15);  color: var(--accent);   }
+    .badge-private { background: rgba(120,120,160,0.15); color: var(--text-muted); }
+    .quiz-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
+    .quiz-card-info { font-size: 0.78rem; color: var(--text-muted); display: flex; gap: 12px; }
+
+    /* ─── Quiz Detail / Take Quiz ───────────────── */
+    .quiz-detail-header {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      margin-bottom: 24px;
+      animation: fadeUp 0.4s ease;
+    }
+    .quiz-detail-title { font-size: 1.8rem; margin-bottom: 10px; }
+    .quiz-detail-meta { display: flex; flex-wrap: wrap; gap: 16px; color: var(--text-muted); font-size: 0.85rem; }
+    .quiz-detail-meta span { display: flex; align-items: center; gap: 5px; }
+
+    /* Question card */
+    .question-wrap { animation: fadeUp 0.35s ease; }
+    .question-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 16px;
+    }
+    .question-number { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .question-text { font-size: 1.1rem; font-weight: 500; margin-bottom: 20px; line-height: 1.5; }
+    .options-list { display: flex; flex-direction: column; gap: 10px; }
+    .option-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 18px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s;
+      background: var(--surface2);
+    }
+    .option-item:hover { border-color: var(--accent); background: rgba(108,99,255,0.06); }
+    .option-item.selected { border-color: var(--accent); background: rgba(108,99,255,0.14); }
+    .option-item.correct  { border-color: var(--success); background: rgba(67,232,176,0.12); }
+    .option-item.wrong    { border-color: var(--danger);  background: rgba(255,79,106,0.10); }
+    .option-label {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.78rem; font-weight: 700;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .option-item.selected .option-label { background: var(--accent); color: white; }
+    .option-item.correct  .option-label { background: var(--success); color: white; }
+    .option-item.wrong    .option-label { background: var(--danger); color: white; }
+    .option-text { font-size: 0.9rem; flex: 1; }
+    .option-icon { font-size: 1rem; flex-shrink: 0; }
+
+    /* Progress bar */
+    .quiz-progress { margin-bottom: 24px; }
+    .progress-meta { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px; }
+    .progress-bar { height: 5px; background: var(--border); border-radius: 99px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 99px; transition: width 0.3s ease; }
+
+    /* Timer */
+    .timer-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px;
+      border-radius: 99px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      font-size: 0.85rem; font-weight: 600;
+      font-family: 'Syne', sans-serif;
+    }
+    .timer-badge.urgent { border-color: var(--danger); color: var(--danger); animation: pulse 1s ease infinite; }
+
+    /* ─── Results Page ───────────────────────────── */
+    .result-hero {
+      text-align: center;
+      padding: 40px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 24px;
+      animation: scaleIn 0.4s ease;
+    }
+    .score-circle {
+      width: 140px; height: 140px;
+      border-radius: 50%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      font-family: 'Syne', sans-serif;
+      position: relative;
+    }
+    .score-circle::before {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: 50%;
+      background: conic-gradient(var(--accent) var(--pct, 0%), var(--surface2) 0%);
+      padding: 6px;
+      -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 8px), black calc(100% - 8px));
+      mask: radial-gradient(farthest-side, transparent calc(100% - 8px), black calc(100% - 8px));
+    }
+    .score-number { font-size: 2.2rem; font-weight: 800; }
+    .score-label { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; }
+    .result-status {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .result-subtitle { color: var(--text-muted); font-size: 0.9rem; }
+    .result-stats { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
+    .result-stat { text-align: center; }
+    .result-stat-value { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 700; }
+    .result-stat-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+    .answer-review { display: flex; flex-direction: column; gap: 14px; }
+    .answer-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 22px;
+      animation: slideIn 0.35s ease both;
+    }
+    .answer-item.correct-answer { border-left: 3px solid var(--success); }
+    .answer-item.wrong-answer   { border-left: 3px solid var(--danger); }
+    .answer-q { font-size: 0.92rem; font-weight: 500; margin-bottom: 8px; }
+    .answer-detail { font-size: 0.8rem; color: var(--text-muted); display: flex; gap: 16px; flex-wrap: wrap; }
+    .answer-detail span b { color: var(--text); }
+    .answer-explanation { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; font-style: italic; border-top: 1px solid var(--border); padding-top: 8px; }
+
+    /* ─── Analytics ──────────────────────────────── */
+    .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .topic-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .topic-chip {
+      padding: 5px 14px;
+      border-radius: 99px;
+      background: rgba(108,99,255,0.12);
+      border: 1px solid rgba(108,99,255,0.3);
+      color: var(--accent);
+      font-size: 0.78rem; font-weight: 500;
+    }
+    .recent-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+    .recent-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px;
+      background: var(--surface2);
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .recent-item:hover { background: rgba(108,99,255,0.08); }
+    .recent-score { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; margin-left: auto; flex-shrink: 0; }
+    .recent-score.pass { color: var(--success); }
+    .recent-score.fail { color: var(--danger); }
+
+    /* ─── Toast ──────────────────────────────────── */
+    .toast-container { position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+    .toast {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 18px;
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      font-size: 0.87rem;
+      max-width: 340px;
+      animation: slideIn 0.3s ease;
+    }
+    .toast-success { border-left: 3px solid var(--success); }
+    .toast-error   { border-left: 3px solid var(--danger); }
+    .toast-info    { border-left: 3px solid var(--accent); }
+    .toast-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+    /* ─── Loader ─────────────────────────────────── */
+    .loader-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; min-height: 200px; }
+    .loader { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+    .loader-sm { width: 18px; height: 18px; border-width: 2px; }
+    .loader-text { color: var(--text-muted); font-size: 0.9rem; }
+
+    /* Skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%);
+      background-size: 200% auto;
+      animation: shimmer 1.4s linear infinite;
+      border-radius: var(--radius-sm);
+    }
+
+    /* ─── Empty State ────────────────────────────── */
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+    .empty-icon { font-size: 3rem; margin-bottom: 16px; }
+    .empty-title { font-family: 'Syne', sans-serif; font-size: 1.2rem; color: var(--text); margin-bottom: 8px; }
+    .empty-desc { font-size: 0.88rem; }
+
+    /* ─── Modal ──────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(10,10,15,0.8);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      animation: fadeUp 0.2s ease;
+    }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      width: 100%; max-width: 560px;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: scaleIn 0.3s ease;
+    }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .modal-title { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 700; }
+    .modal-close { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.3rem; transition: color 0.15s; }
+    .modal-close:hover { color: var(--text); }
+
+    /* ─── Search ─────────────────────────────────── */
+    .search-wrap { position: relative; margin-bottom: 24px; }
+    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 1rem; }
+    .search-input { padding-left: 40px !important; }
+
+    /* ─── Tabs ───────────────────────────────────── */
+    .tabs { display: flex; gap: 4px; background: var(--surface2); border-radius: var(--radius-sm); padding: 4px; margin-bottom: 24px; }
+    .tab {
+      flex: 1; padding: 9px; text-align: center; cursor: pointer;
+      border-radius: 6px; font-size: 0.85rem; font-weight: 500;
+      color: var(--text-muted); border: none; background: transparent;
+      transition: all 0.18s;
+    }
+    .tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+
+    /* ─── Pagination ─────────────────────────────── */
+    .pagination { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 24px; }
+    .page-btn {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-sm);
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer; font-size: 0.85rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .page-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .page-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+    .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ─── Responsive ─────────────────────────────── */
+    @media (max-width: 768px) {
+      .app-shell { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .main { padding: 20px; }
+      .form-row { grid-template-columns: 1fr; }
+      .analytics-grid { grid-template-columns: 1fr; }
+      .quiz-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* ─── Generate animation ─────────────────────── */
+    .generating-card {
+      text-align: center; padding: 60px 40px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      animation: scaleIn 0.4s ease;
+    }
+    .generating-icon {
+      font-size: 3rem; margin-bottom: 20px;
+      animation: pulse 1.5s ease infinite;
+    }
+    .dots span {
+      display: inline-block;
+      animation: pulse 1.4s ease infinite;
+    }
+    .dots span:nth-child(2) { animation-delay: 0.2s; }
+    .dots span:nth-child(3) { animation-delay: 0.4s; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script>
+const { useState, useEffect, useRef, useCallback, useContext, createContext } = React;
+
+// ─── Config ────────────────────────────────────────
+const API_BASE = '/api';
+
+// ─── API Helper ─────────────────────────────────────
+const api = async (path, opts = {}) => {
+  const token = localStorage.getItem('qc_token');
+  const res = await fetch(`${API_BASE}${path}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    ...opts,
+  });
+  const data = await res.json();
+  if (res.status === 401) {
+    // Token expired or invalid, logout
+    localStorage.removeItem('qc_token');
+    localStorage.removeItem('qc_user');
+    window.location.reload(); // Reload to show login
+    throw new Error('Session expired. Please log in again.');
+  }
+  if (!res.ok) throw new Error(data.message || 'Request failed');
+  return data;
+};
+
+// ─── Auth Context ────────────────────────────────────
+const AuthCtx = createContext(null);
+
+// ─── Toast Context ───────────────────────────────────
+const ToastCtx = createContext(null);
+
+// ─── Utils ───────────────────────────────────────────
+const fmtDate = d => d ? new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : '';
+const fmtSecs = s => s ? `${Math.floor(s/60)}m ${s%60}s` : '—';
+const difficultyBadge = d => {
+  const map = { EASY: 'easy', MEDIUM: 'medium', HARD: 'hard' };
+  const cls = map[d] || 'medium';
+  return React.createElement('span', { className: `badge badge-${cls}` }, d);
+};
+
+// ─── Toast Component ──────────────────────────────────
+function ToastProvider({ children }) {
+  const [toasts, setToasts] = useState([]);
+  const add = useCallback((msg, type = 'info') => {
+    const id = Date.now();
+    setToasts(t => [...t, { id, msg, type }]);
+    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3500);
+  }, []);
+  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  return React.createElement(ToastCtx.Provider, { value: add },
+    children,
+    React.createElement('div', { className: 'toast-container' },
+      toasts.map(t => React.createElement('div', { key: t.id, className: `toast toast-${t.type}` },
+        React.createElement('span', { className: 'toast-icon' }, icons[t.type]),
+        t.msg
+      ))
+    )
+  );
+}
+
+// ─── Loader ───────────────────────────────────────────
+const Loader = ({ size = '', text = 'Loading…' }) =>
+  React.createElement('div', { className: 'loader-wrap' },
+    React.createElement('div', { className: `loader ${size === 'sm' ? 'loader-sm' : ''}` }),
+    text && React.createElement('p', { className: 'loader-text' }, text)
+  );
+
+// ─── Auth Pages ───────────────────────────────────────
+function AuthPage({ onAuth }) {
+  const [mode, setMode] = useState('login');
+  const [form, setForm] = useState({ username:'', email:'', password:'', fullName:'' });
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState('');
+  const toast = useContext(ToastCtx);
+
+  const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const submit = async e => {
+    e.preventDefault(); setErr(''); setLoading(true);
+    try {
+      const path = mode === 'login' ? '/auth/login' : '/auth/register';
+      const body = mode === 'login'
+        ? { username: form.username, password: form.password }
+        : { username: form.username, email: form.email, password: form.password, fullName: form.fullName };
+      const res = await api(path, { method: 'POST', body: JSON.stringify(body) });
+      localStorage.setItem('qc_token', res.data.token);
+      localStorage.setItem('qc_user', JSON.stringify(res.data));
+      toast(mode === 'login' ? 'Welcome back!' : 'Account created!', 'success');
+      onAuth(res.data);
+    } catch (e) { setErr(e.message); } finally { setLoading(false); }
+  };
+
+  return React.createElement('div', { className: 'auth-wrap' },
+    React.createElement('div', { className: 'auth-box' },
+      React.createElement('div', { className: 'auth-logo' },
+        React.createElement('div', { className: 'auth-logo-icon' }, '🧠'),
+        React.createElement('h1', { className: 'auth-title' }, 'QuizCraft AI'),
+        React.createElement('p', { className: 'auth-subtitle' }, mode === 'login' ? 'Sign in to your account' : 'Create your account')
+      ),
+      React.createElement('form', { onSubmit: submit },
+        mode === 'register' && React.createElement('div', { className: 'form-group' },
+          React.createElement('label', { className: 'form-label' }, 'Full Name'),
+          React.createElement('input', { className: 'form-input', type:'text', placeholder:'John Doe', value: form.fullName, onChange: set('fullName'), required: true })
+        ),
+        React.createElement('div', { className: 'form-group' },
+          React.createElement('label', { className: 'form-label' }, 'Username'),
+          React.createElement('input', { className: 'form-input', type:'text', placeholder:'johndoe', value: form.username, onChange: set('username'), required: true })
+        ),
+        mode === 'register' && React.createElement('div', { className: 'form-group' },
+          React.createElement('label', { className: 'form-label' }, 'Email'),
+          React.createElement('input', { className: 'form-input', type:'email', placeholder:'john@example.com', value: form.email, onChange: set('email'), required: true })
+        ),
+        React.createElement('div', { className: 'form-group' },
+          React.createElement('label', { className: 'form-label' }, 'Password'),
+          React.createElement('input', { className: 'form-input', type:'password', placeholder:'••••••••', value: form.password, onChange: set('password'), required: true })
+        ),
+        err && React.createElement('p', { className: 'form-error', style:{ marginBottom: '14px' } }, err),
+        React.createElement('button', { className: 'btn btn-primary btn-full btn-lg', type:'submit', disabled: loading },
+          loading ? React.createElement('span', { className: 'loader loader-sm' }) : null,
+          loading ? 'Please wait…' : (mode === 'login' ? 'Sign In' : 'Create Account')
+        )
+      ),
+      React.createElement('p', { className: 'auth-switch' },
+        mode === 'login' ? "Don't have an account? " : 'Already have an account? ',
+        React.createElement('a', { onClick: () => { setMode(mode === 'login' ? 'register' : 'login'); setErr(''); } },
+          mode === 'login' ? 'Sign up' : 'Sign in'
+        )
+      )
+    )
+  );
+}
+
+// ─── Generate Quiz Page ───────────────────────────────
+function GenerateQuiz({ onDone }) {
+  const [form, setForm] = useState({ topic:'', numQuestions:10, difficulty:'MEDIUM', title:'', description:'', timeLimitMinutes:'', isPublic:false, additionalInstructions:'' });
+  const [loading, setLoading] = useState(false);
+  const toast = useContext(ToastCtx);
+  const set = k => v => setForm(f => ({ ...f, [k]: v }));
+  const setE = k => e => set(k)(e.target.value);
+
+  const submit = async e => {
+    e.preventDefault(); setLoading(true);
+    try {
+      const body = { ...form, numQuestions: +form.numQuestions, timeLimitMinutes: form.timeLimitMinutes ? +form.timeLimitMinutes : null };
+      const res = await api('/quizzes/generate', { method:'POST', body: JSON.stringify(body) });
+      toast('Quiz generated successfully!', 'success');
+      onDone(res.data);
+    } catch (e) { toast(e.message, 'error'); setLoading(false); }
+  };
+
+  if (loading) return React.createElement('div', { className: 'generating-card' },
+    React.createElement('div', { className: 'generating-icon' }, '🤖'),
+    React.createElement('h2', { style:{ fontFamily:'Syne', marginBottom:'10px' } }, 'Generating your quiz'),
+    React.createElement('p', { style:{ color:'var(--text-muted)' } },
+      'AI is crafting questions', React.createElement('span', { className:'dots' }, React.createElement('span',null,'.'), React.createElement('span',null,'.'), React.createElement('span',null,'.'))
+    ),
+    React.createElement('p', { style:{ color:'var(--text-dim)', fontSize:'0.8rem', marginTop:'8px' } }, 'This may take up to 30 seconds')
+  );
+
+  return React.createElement('div', null,
+    React.createElement('div', { className:'page-header' },
+      React.createElement('h1', { className:'page-title' }, '✨ Generate Quiz'),
+      React.createElement('p', { className:'page-subtitle' }, 'Let AI create a custom quiz on any topic')
+    ),
+    React.createElement('div', { className:'card', style:{ maxWidth: 680 } },
+      React.createElement('form', { onSubmit: submit },
+        React.createElement('div', { className:'form-group' },
+          React.createElement('label', { className:'form-label' }, 'Topic *'),
+          React.createElement('input', { className:'form-input', placeholder:'e.g. World War II, Python programming, Quantum Physics…', value:form.topic, onChange: setE('topic'), required:true })
+        ),
+        React.createElement('div', { className:'form-row' },
+          React.createElement('div', { className:'form-group' },
+            React.createElement('label', { className:'form-label' }, 'Title (optional)'),
+            React.createElement('input', { className:'form-input', placeholder:'Auto-generated if left blank', value:form.title, onChange:setE('title') })
+          ),
+          React.createElement('div', { className:'form-group' },
+            React.createElement('label', { className:'form-label' }, 'Time Limit (minutes)'),
+            React.createElement('input', { className:'form-input', type:'number', placeholder:'No limit', value:form.timeLimitMinutes, onChange:setE('timeLimitMinutes'), min:1, max:180 })
+          )
+        ),
+        React.createElement('div', { className:'form-group' },
+          React.createElement('label', { className:'form-label' }, 'Number of Questions'),
+          React.createElement('div', { className:'range-row' },
+            React.createElement('input', { className:'form-range', type:'range', min:1, max:50, value:form.numQuestions, onChange: e => set('numQuestions')(+e.target.value) }),
+            React.createElement('span', { className:'range-value' }, form.numQuestions)
+          )
+        ),
+        React.createElement('div', { className:'form-group' },
+          React.createElement('label', { className:'form-label' }, 'Difficulty'),
+          React.createElement('div', { className:'pill-group' },
+            ['EASY','MEDIUM','HARD'].map(d => React.createElement('button', {
+              key:d, type:'button',
+              className:`pill ${form.difficulty === d ? `selected-${d.toLowerCase()}` : ''}`,
+              onClick: () => set('difficulty')(d)
+            }, d.charAt(0) + d.slice(1).toLowerCase()))
+          )
+        ),
+        React.createElement('div', { className:'form-group' },
+          React.createElement('label', { className:'form-label' }, 'Description (optional)'),
+          React.createElement('textarea', { className:'form-textarea', placeholder:'Brief description of this quiz…', value:form.description, onChange:setE('description') })
+        ),
+        React.createElement('div', { className:'form-group' },
+          React.createElement('label', { className:'form-label' }, 'Additional Instructions (optional)'),
+          React.createElement('textarea', { className:'form-textarea', style:{minHeight:'70px'}, placeholder:'e.g. Focus on 20th century events, include trick questions…', value:form.additionalInstructions, onChange:setE('additionalInstructions') })
+        ),
+        React.createElement('div', { className:'form-group' },
+          React.createElement('div', { className:'toggle-row' },
+            React.createElement('div', null,
+              React.createElement('div', { className:'toggle-label' }, 'Make Public'),
+              React.createElement('div', { className:'toggle-desc' }, 'Allow other users to discover and take this quiz')
+            ),
+            React.createElement('label', { className:'toggle' },
+              React.createElement('input', { type:'checkbox', checked:form.isPublic, onChange: e => set('isPublic')(e.target.checked) }),
+              React.createElement('span', { className:'toggle-slider' })
+            )
+          )
+        ),
+        React.createElement('button', { className:'btn btn-primary btn-lg', type:'submit', style:{marginTop:8} }, '🚀 Generate Quiz')
+      )
+    )
+  );
+}
+
+// ─── Quiz Card ────────────────────────────────────────
+function QuizCard({ quiz, onTake, onDelete, showDelete }) {
+  return React.createElement('div', { className:'quiz-card', onClick: () => onTake(quiz) },
+    React.createElement('div', { className:'quiz-card-header' },
+      React.createElement('div', { className:'quiz-card-title' }, quiz.title || quiz.topic),
+      difficultyBadge(quiz.difficulty)
+    ),
+    quiz.description && React.createElement('p', { style:{ fontSize:'0.82rem', color:'var(--text-muted)', lineHeight:1.5 } }, quiz.description.slice(0,100) + (quiz.description.length > 100 ? '…' : '')),
+    React.createElement('div', { className:'quiz-card-meta' },
+      React.createElement('span', { className:`badge badge-${quiz.isPublic ? 'public' : 'private'}` }, quiz.isPublic ? '🌍 Public' : '🔒 Private'),
+      quiz.llmModel && React.createElement('span', { style:{fontSize:'0.72rem', color:'var(--text-dim)'} }, quiz.llmModel)
+    ),
+    React.createElement('div', { className:'quiz-card-footer' },
+      React.createElement('div', { className:'quiz-card-info' },
+        React.createElement('span', null, `📝 ${quiz.numQuestions} Qs`),
+        quiz.timeLimitMinutes && React.createElement('span', null, `⏱ ${quiz.timeLimitMinutes}m`),
+        React.createElement('span', null, fmtDate(quiz.createdAt))
+      ),
+      showDelete && React.createElement('button', {
+        className:'btn btn-danger btn-sm',
+        onClick: e => { e.stopPropagation(); onDelete(quiz.id); }
+      }, '🗑️')
+    )
+  );
+}
+
+// ─── My Quizzes Page ──────────────────────────────────
+function MyQuizzes({ onTake }) {
+  const [quizzes, setQuizzes] = useState(null);
+  const [page, setPage] = useState(0);
+  const [total, setTotal] = useState(0);
+  const toast = useContext(ToastCtx);
+
+  const load = async p => {
+    try {
+      const res = await api(`/quizzes/my?page=${p}&size=9`);
+      setQuizzes(res.data.content);
+      setTotal(res.data.totalPages);
+    } catch (e) { toast(e.message, 'error'); }
+  };
+
+  useEffect(() => { load(page); }, [page]);
+
+  const del = async id => {
+    if (!confirm('Delete this quiz?')) return;
+    try { await api(`/quizzes/${id}`, { method:'DELETE' }); toast('Quiz deleted', 'success'); load(page); }
+    catch (e) { toast(e.message, 'error'); }
+  };
+
+  return React.createElement('div', null,
+    React.createElement('div', { className:'page-header' },
+      React.createElement('h1', { className:'page-title' }, '📚 My Quizzes'),
+      React.createElement('p', { className:'page-subtitle' }, 'Quizzes you have created')
+    ),
+    !quizzes ? React.createElement(Loader) :
+    quizzes.length === 0 ? React.createElement('div', { className:'empty-state' },
+      React.createElement('div', { className:'empty-icon' }, '📭'),
+      React.createElement('div', { className:'empty-title' }, 'No quizzes yet'),
+      React.createElement('p', { className:'empty-desc' }, 'Generate your first AI-powered quiz!')
+    ) :
+    React.createElement('div', null,
+      React.createElement('div', { className:'quiz-grid' },
+        quizzes.map((q,i) => React.createElement('div', { key:q.id, className:`stagger-${Math.min(i%5+1,5)}` },
+          React.createElement(QuizCard, { quiz:q, onTake, onDelete:del, showDelete:true })
+        ))
+      ),
+      total > 1 && React.createElement('div', { className:'pagination' },
+        React.createElement('button', { className:'page-btn', onClick:()=>setPage(p=>p-1), disabled:page===0 }, '‹'),
+        Array.from({length:total},(_,i)=>i).map(i=>
+          React.createElement('button', { key:i, className:`page-btn ${i===page?'active':''}`, onClick:()=>setPage(i) }, i+1)
+        ),
+        React.createElement('button', { className:'page-btn', onClick:()=>setPage(p=>p+1), disabled:page===total-1 }, '›')
+      )
+    )
+  );
+}
+
+// ─── Explore Page ─────────────────────────────────────
+function Explore({ onTake }) {
+  const [quizzes, setQuizzes] = useState(null);
+  const [keyword, setKeyword] = useState('');
+  const [page, setPage] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [searching, setSearching] = useState(false);
+  const toast = useContext(ToastCtx);
+
+  const load = async (p, kw) => {
+    setSearching(true);
+    try {
+      const path = kw ? `/quizzes/public/search?keyword=${encodeURIComponent(kw)}&page=${p}&size=9`
+                      : `/quizzes/public?page=${p}&size=9`;
+      const res = await api(path);
+      setQuizzes(res.data.content);
+      setTotal(res.data.totalPages);
+    } catch (e) { toast(e.message, 'error'); }
+    setSearching(false);
+  };
+
+  useEffect(() => { load(page, keyword); }, [page]);
+
+  const search = e => { e.preventDefault(); setPage(0); load(0, keyword); };
+
+  return React.createElement('div', null,
+    React.createElement('div', { className:'page-header' },
+      React.createElement('h1', { className:'page-title' }, '🌍 Explore'),
+      React.createElement('p', { className:'page-subtitle' }, 'Discover public quizzes created by the community')
+    ),
+    React.createElement('form', { onSubmit: search, className:'search-wrap' },
+      React.createElement('span', { className:'search-icon' }, '🔍'),
+      React.createElement('input', { className:'form-input search-input', placeholder:'Search topics, titles…', value:keyword, onChange:e=>setKeyword(e.target.value) }),
+      React.createElement('button', { className:'btn btn-primary', style:{position:'absolute',right:6,top:'50%',transform:'translateY(-50%)'}, type:'submit' }, 'Search')
+    ),
+    searching || !quizzes ? React.createElement(Loader) :
+    quizzes.length === 0 ? React.createElement('div', { className:'empty-state' },
+      React.createElement('div', { className:'empty-icon' }, '🔎'),
+      React.createElement('div', { className:'empty-title' }, 'No quizzes found'),
+      React.createElement('p', { className:'empty-desc' }, keyword ? 'Try a different keyword' : 'No public quizzes yet')
+    ) :
+    React.createElement('div', null,
+      React.createElement('div', { className:'quiz-grid' },
+        quizzes.map((q,i) => React.createElement('div', { key:q.id, className:`stagger-${Math.min(i%5+1,5)}` },
+          React.createElement(QuizCard, { quiz:q, onTake, showDelete:false })
+        ))
+      ),
+      total > 1 && React.createElement('div', { className:'pagination' },
+        React.createElement('button', { className:'page-btn', onClick:()=>setPage(p=>p-1), disabled:page===0 }, '‹'),
+        Array.from({length:total},(_,i)=>i).map(i=>
+          React.createElement('button', { key:i, className:`page-btn ${i===page?'active':''}`, onClick:()=>setPage(i) }, i+1)
+        ),
+        React.createElement('button', { className:'page-btn', onClick:()=>setPage(p=>p+1), disabled:page===total-1 }, '›')
+      )
+    )
+  );
+}
+
+// ─── Take Quiz Page ───────────────────────────────────
+function TakeQuiz({ quiz, onResult, onBack }) {
+  const [answers, setAnswers] = useState({});
+  const [current, setCurrent] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+  const [startTime] = useState(Date.now());
+  const [elapsed, setElapsed] = useState(0);
+  const toast = useContext(ToastCtx);
+
+  const qs = quiz.questions || [];
+  const timeLimit = quiz.timeLimitMinutes ? quiz.timeLimitMinutes * 60 : null;
+
+  useEffect(() => {
+    const t = setInterval(() => setElapsed(Math.floor((Date.now() - startTime) / 1000)), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  // Auto-submit on time
+  useEffect(() => {
+    if (timeLimit && elapsed >= timeLimit) { submit(); }
+  }, [elapsed]);
+
+  const remaining = timeLimit ? Math.max(0, timeLimit - elapsed) : null;
+  const pct = Math.round(((current + 1) / qs.length) * 100);
+
+  const selectAnswer = (qid, optLabel) => {
+    setAnswers(a => ({ ...a, [qid]: optLabel }));
+  };
+
+  const submit = async () => {
+    setSubmitting(true);
+    try {
+      const answerList = qs.map(q => ({ questionId: q.id, selectedAnswer: answers[q.id] || null }));
+      const body = { quizId: quiz.id, answers: answerList, timeTakenSeconds: elapsed };
+      const res = await api('/attempts/submit', { method:'POST', body:JSON.stringify(body) });
+      onResult(res.data);
+    } catch (e) { toast(e.message, 'error'); setSubmitting(false); }
+  };
+
+  if (submitting) return React.createElement('div', { className:'generating-card' },
+    React.createElement('div', { className:'generating-icon' }, '📊'),
+    React.createElement('h2', { style:{fontFamily:'Syne',marginBottom:10} }, 'Scoring your quiz'),
+    React.createElement('p', { style:{color:'var(--text-muted)'} }, 'Calculating results', React.createElement('span', { className:'dots' }, React.createElement('span',null,'.'), React.createElement('span',null,'.'), React.createElement('span',null,'.')))
+  );
+
+  const q = qs[current];
+
+  return React.createElement('div', null,
+    // Header
+    React.createElement('div', { style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20} },
+      React.createElement('button', { className:'btn btn-ghost btn-sm', onClick:onBack }, '← Back'),
+      remaining !== null && React.createElement('div', { className:`timer-badge ${remaining < 60 ? 'urgent' : ''}` },
+        '⏱', `${Math.floor(remaining/60)}:${String(remaining%60).padStart(2,'0')}`
+      )
+    ),
+    // Progress
+    React.createElement('div', { className:'quiz-progress' },
+      React.createElement('div', { className:'progress-meta' },
+        React.createElement('span', null, `Question ${current+1} of ${qs.length}`),
+        React.createElement('span', null, `${Object.keys(answers).length} answered`)
+      ),
+      React.createElement('div', { className:'progress-bar' },
+        React.createElement('div', { className:'progress-fill', style:{width:`${pct}%`} })
+      )
+    ),
+    // Question
+    React.createElement('div', { className:'question-wrap', key:q.id },
+      React.createElement('div', { className:'question-card' },
+        React.createElement('div', { className:'question-number' }, `Q${current+1} · ${q.type || 'MCQ'} · ${q.points || 1} pt${(q.points||1)!==1?'s':''}`),
+        React.createElement('div', { className:'question-text' }, q.questionText),
+        React.createElement('div', { className:'options-list' },
+          (q.options || []).map(opt => {
+            const sel = answers[q.id] === opt.optionLabel;
+            return React.createElement('div', {
+              key:opt.id,
+              className:`option-item ${sel ? 'selected' : ''}`,
+              onClick: () => selectAnswer(q.id, opt.optionLabel)
+            },
+              React.createElement('div', { className:'option-label' }, opt.optionLabel),
+              React.createElement('div', { className:'option-text' }, opt.optionText)
+            );
+          })
+        )
+      )
+    ),
+    // Navigation
+    React.createElement('div', { style:{display:'flex',gap:12,justifyContent:'space-between',marginTop:16} },
+      React.createElement('button', { className:'btn btn-secondary', onClick:()=>setCurrent(c=>c-1), disabled:current===0 }, '← Previous'),
+      current < qs.length - 1
+        ? React.createElement('button', { className:'btn btn-primary', onClick:()=>setCurrent(c=>c+1) }, 'Next →')
+        : React.createElement('button', { className:'btn btn-primary', onClick:submit }, '🏁 Submit Quiz')
+    ),
+    // Question dots nav
+    React.createElement('div', { style:{display:'flex',gap:6,flexWrap:'wrap',marginTop:20,justifyContent:'center'} },
+      qs.map((qq,i) => React.createElement('button', {
+        key:qq.id,
+        onClick: () => setCurrent(i),
+        style:{
+          width:32, height:32, borderRadius:'50%', border:'none', cursor:'pointer',
+          background: i === current ? 'var(--accent)' : answers[qq.id] ? 'rgba(108,99,255,0.3)' : 'var(--border)',
+          color: i === current ? 'white' : answers[qq.id] ? 'var(--accent)' : 'var(--text-muted)',
+          fontSize:'0.75rem', fontWeight:600
+        }
+      }, i+1))
+    )
+  );
+}
+
+// ─── Quiz Result Page ─────────────────────────────────
+function QuizResult({ result, onBack }) {
+  const pct = Math.round(result.percentage || 0);
+  const pass = pct >= 60;
+  const emoji = pct >= 90 ? '🏆' : pct >= 70 ? '🎯' : pct >= 50 ? '👍' : '📚';
+
+  return React.createElement('div', null,
+    React.createElement('button', { className:'btn btn-ghost btn-sm', onClick:onBack, style:{marginBottom:20} }, '← Back to Quizzes'),
+    React.createElement('div', { className:'result-hero' },
+      React.createElement('div', { className:'score-circle', style:{'--pct': `${pct * 3.6}deg`} },
+        React.createElement('div', { className:'score-number' }, `${pct}%`),
+        React.createElement('div', { className:'score-label' }, 'Score')
+      ),
+      React.createElement('div', { className:'result-status', style:{color: pass ? 'var(--success)' : 'var(--danger)'} }, `${emoji} ${pass ? 'Passed!' : 'Keep Practicing'}`),
+      React.createElement('p', { className:'result-subtitle' }, result.quizTitle),
+      React.createElement('div', { className:'result-stats' },
+        React.createElement('div', { className:'result-stat' }, React.createElement('div', { className:'result-stat-value' }, `${result.earnedPoints}/${result.totalPoints}`), React.createElement('div', { className:'result-stat-label' }, 'Points')),
+        React.createElement('div', { className:'result-stat' }, React.createElement('div', { className:'result-stat-value' }, result.status || '—'), React.createElement('div', { className:'result-stat-label' }, 'Status')),
+        React.createElement('div', { className:'result-stat' }, React.createElement('div', { className:'result-stat-value' }, fmtSecs(result.timeTakenSeconds)), React.createElement('div', { className:'result-stat-label' }, 'Time Taken')),
+        result.answers && React.createElement('div', { className:'result-stat' },
+          React.createElement('div', { className:'result-stat-value' }, result.answers.filter(a=>a.correct).length),
+          React.createElement('div', { className:'result-stat-label' }, 'Correct')
+        )
+      )
+    ),
+    result.answers && result.answers.length > 0 && React.createElement('div', null,
+      React.createElement('h3', { style:{fontFamily:'Syne',marginBottom:16} }, '📋 Answer Review'),
+      React.createElement('div', { className:'answer-review' },
+        result.answers.map((a,i) => React.createElement('div', { key:a.questionId, className:`answer-item ${a.correct?'correct-answer':'wrong-answer'}`, style:{animationDelay:`${i*0.04}s`} },
+          React.createElement('div', { className:'answer-q' }, `${i+1}. ${a.questionText}`),
+          React.createElement('div', { className:'answer-detail' },
+            React.createElement('span', null, '✏️ Your answer: ', React.createElement('b', null, a.selectedAnswer || '(skipped)')),
+            !a.correct && React.createElement('span', null, '✅ Correct: ', React.createElement('b', null, a.correctAnswer)),
+            React.createElement('span', null, `${a.pointsEarned}/${a.totalPoints} pts`)
+          ),
+          a.explanation && React.createElement('div', { className:'answer-explanation' }, '💡 ', a.explanation)
+        ))
+      )
+    )
+  );
+}
+
+// ─── My Attempts Page ─────────────────────────────────
+function MyAttempts({ onViewResult }) {
+  const [attempts, setAttempts] = useState(null);
+  const [page, setPage] = useState(0);
+  const [total, setTotal] = useState(0);
+  const toast = useContext(ToastCtx);
+
+  const load = async p => {
+    try {
+      const res = await api(`/attempts/my?page=${p}&size=10`);
+      setAttempts(res.data.content);
+      setTotal(res.data.totalPages);
+    } catch(e) { toast(e.message, 'error'); }
+  };
+
+  useEffect(() => { load(page); }, [page]);
+
+  return React.createElement('div', null,
+    React.createElement('div', { className:'page-header' },
+      React.createElement('h1', { className:'page-title' }, '🗂️ My Attempts'),
+      React.createElement('p', { className:'page-subtitle' }, 'Your quiz history')
+    ),
+    !attempts ? React.createElement(Loader) :
+    attempts.length === 0 ? React.createElement('div', { className:'empty-state' },
+      React.createElement('div', { className:'empty-icon' }, '📭'),
+      React.createElement('div', { className:'empty-title' }, 'No attempts yet'),
+      React.createElement('p', { className:'empty-desc' }, 'Take a quiz to see your history here')
+    ) :
+    React.createElement('div', null,
+      React.createElement('div', { className:'answer-review' },
+        attempts.map((a,i) => React.createElement('div', { key:a.attemptId,
+          className:'answer-item',
+          style:{cursor:'pointer', animationDelay:`${i*0.05}s`},
+          onClick:()=>onViewResult(a)
+        },
+          React.createElement('div', { style:{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12} },
+            React.createElement('div', null,
+              React.createElement('div', { className:'answer-q', style:{marginBottom:4} }, a.quizTitle),
+              React.createElement('div', { className:'answer-detail' },
+                React.createElement('span', null, fmtDate(a.completedAt)),
+                React.createElement('span', null, `${a.earnedPoints}/${a.totalPoints} pts`),
+                a.timeTakenSeconds && React.createElement('span', null, fmtSecs(a.timeTakenSeconds))
+              )
+            ),
+            React.createElement('div', { className:`recent-score ${(a.percentage||0)>=60?'pass':'fail'}` }, `${Math.round(a.percentage||0)}%`)
+          )
+        ))
+      ),
+      total > 1 && React.createElement('div', { className:'pagination' },
+        React.createElement('button', { className:'page-btn', onClick:()=>setPage(p=>p-1), disabled:page===0 }, '‹'),
+        Array.from({length:total},(_,i)=>i).map(i=>
+          React.createElement('button', { key:i, className:`page-btn ${i===page?'active':''}`, onClick:()=>setPage(i) }, i+1)
+        ),
+        React.createElement('button', { className:'page-btn', onClick:()=>setPage(p=>p+1), disabled:page===total-1 }, '›')
+      )
+    )
+  );
+}
+
+// ─── Analytics Page ───────────────────────────────────
+function Analytics() {
+  const [data, setData] = useState(null);
+  const toast = useContext(ToastCtx);
+
+  useEffect(() => {
+    api('/analytics/me').then(r=>setData(r.data)).catch(e=>toast(e.message,'error'));
+  }, []);
+
+  if (!data) return React.createElement(Loader);
+
+  const avgScore = data.averageScore ? Math.round(data.averageScore) : 0;
+
+  return React.createElement('div', null,
+    React.createElement('div', { className:'page-header' },
+      React.createElement('h1', { className:'page-title' }, '📈 Analytics'),
+      React.createElement('p', { className:'page-subtitle' }, `Performance insights for ${data.username}`)
+    ),
+    React.createElement('div', { className:'stats-grid' },
+      React.createElement('div', { className:'stat-card stat-accent-violet animate-fadeUp stagger-1' }, React.createElement('div', { className:'stat-label' }, 'Quizzes Created'), React.createElement('div', { className:'stat-value' }, data.totalQuizzesCreated)),
+      React.createElement('div', { className:'stat-card stat-accent-pink animate-fadeUp stagger-2' }, React.createElement('div', { className:'stat-label' }, 'Attempts Completed'), React.createElement('div', { className:'stat-value' }, data.totalAttemptsCompleted)),
+      React.createElement('div', { className:'stat-card stat-accent-teal animate-fadeUp stagger-3' }, React.createElement('div', { className:'stat-label' }, 'Average Score'), React.createElement('div', { className:'stat-value', style:{color:`hsl(${avgScore*1.2},70%,60%)`} }, `${avgScore}%`)),
+      React.createElement('div', { className:'stat-card stat-accent-orange animate-fadeUp stagger-4' }, React.createElement('div', { className:'stat-label' }, 'Highest Score'), React.createElement('div', { className:'stat-value', style:{color:'var(--warning)'} }, `${Math.round(data.highestScore||0)}%`))
+    ),
+    React.createElement('div', { className:'analytics-grid' },
+      React.createElement('div', { className:'card animate-fadeUp stagger-2' },
+        React.createElement('h3', { style:{fontFamily:'Syne',marginBottom:4} }, '🏷️ Topics Explored'),
+        React.createElement('p', { style:{fontSize:'0.8rem',color:'var(--text-muted)',marginBottom:8} }, `${(data.topicsExplored||[]).length} unique topics`),
+        React.createElement('div', { className:'topic-chips' },
+          (data.topicsExplored||[]).length === 0
+            ? React.createElement('span', { style:{color:'var(--text-dim)',fontSize:'0.85rem'} }, 'No topics yet')
+            : (data.topicsExplored||[]).map(t => React.createElement('span', { key:t, className:'topic-chip' }, t))
+        )
+      ),
+      React.createElement('div', { className:'card animate-fadeUp stagger-3' },
+        React.createElement('h3', { style:{fontFamily:'Syne',marginBottom:4} }, '🕐 Recent Activity'),
+        React.createElement('div', { className:'recent-list' },
+          (data.recentAttempts||[]).length === 0
+            ? React.createElement('p', { style:{color:'var(--text-dim)',fontSize:'0.85rem'} }, 'No recent attempts')
+            : (data.recentAttempts||[]).slice(0,6).map(a => React.createElement('div', { key:a.attemptId, className:'recent-item' },
+                React.createElement('div', null,
+                  React.createElement('div', { style:{fontSize:'0.85rem',fontWeight:500} }, a.quizTitle),
+                  React.createElement('div', { style:{fontSize:'0.75rem',color:'var(--text-muted)'} }, a.topic)
+                ),
+                React.createElement('div', { className:`recent-score ${(a.percentage||0)>=60?'pass':'fail'}` }, `${Math.round(a.percentage||0)}%`)
+              ))
+        )
+      )
+    )
+  );
+}
+
+// ─── Quiz Detail (before taking) ──────────────────────
+function QuizDetail({ quiz, onStart, onBack }) {
+  const [fullQuiz, setFullQuiz] = useState(null);
+  const toast = useContext(ToastCtx);
+
+  useEffect(() => {
+    api(`/quizzes/${quiz.id}`).then(r=>setFullQuiz(r.data)).catch(e=>toast(e.message,'error'));
+  }, []);
+
+  if (!fullQuiz) return React.createElement(Loader, {text:'Loading quiz…'});
+
+  return React.createElement('div', null,
+    React.createElement('button', { className:'btn btn-ghost btn-sm', onClick:onBack, style:{marginBottom:20} }, '← Back'),
+    React.createElement('div', { className:'quiz-detail-header' },
+      React.createElement('div', { style:{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:16,flexWrap:'wrap'} },
+        React.createElement('div', null,
+          React.createElement('h1', { className:'quiz-detail-title' }, fullQuiz.title || fullQuiz.topic),
+          fullQuiz.description && React.createElement('p', { style:{color:'var(--text-muted)',marginTop:8,lineHeight:1.6} }, fullQuiz.description)
+        ),
+        difficultyBadge(fullQuiz.difficulty)
+      ),
+      React.createElement('div', { className:'quiz-detail-meta', style:{marginTop:16} },
+        React.createElement('span', null, '📝 ', `${fullQuiz.numQuestions} Questions`),
+        fullQuiz.timeLimitMinutes && React.createElement('span', null, '⏱ ', `${fullQuiz.timeLimitMinutes} min limit`),
+        React.createElement('span', null, '👤 ', fullQuiz.username || 'Unknown'),
+        React.createElement('span', null, '📅 ', fmtDate(fullQuiz.createdAt)),
+        fullQuiz.llmModel && React.createElement('span', null, '🤖 ', fullQuiz.llmModel)
+      )
+    ),
+    React.createElement('div', { style:{display:'flex',gap:12,marginBottom:24} },
+      React.createElement('button', { className:'btn btn-primary btn-lg', onClick:()=>onStart(fullQuiz) }, '▶ Start Quiz'),
+    ),
+    fullQuiz.questions && React.createElement('div', { className:'card' },
+      React.createElement('h3', { style:{fontFamily:'Syne',marginBottom:16} }, 'Questions Preview'),
+      React.createElement('div', { style:{display:'flex',flexDirection:'column',gap:10} },
+        fullQuiz.questions.map((q,i) => React.createElement('div', { key:q.id, style:{padding:'12px 16px',background:'var(--surface2)',borderRadius:'var(--radius-sm)',fontSize:'0.88rem',animation:`slideIn 0.3s ease ${i*0.04}s both`} },
+          React.createElement('span', { style:{color:'var(--text-muted)',marginRight:8} }, `${i+1}.`),
+          q.questionText
+        ))
+      )
+    )
+  );
+}
+
+// ─── Dashboard ────────────────────────────────────────
+function Dashboard({ onNavigate }) {
+  const [stats, setStats] = useState(null);
+  const [recentQuizzes, setRecentQuizzes] = useState([]);
+  const { user } = useContext(AuthCtx);
+  const toast = useContext(ToastCtx);
+
+  useEffect(() => {
+    Promise.all([
+      api('/analytics/me'),
+      api('/quizzes/my?page=0&size=4')
+    ]).then(([a, q]) => {
+      setStats(a.data);
+      setRecentQuizzes(q.data.content || []);
+    }).catch(e => toast(e.message, 'error'));
+  }, []);
+
+  const hr = new Date().getHours();
+  const greeting = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
+
+  return React.createElement('div', null,
+    React.createElement('div', { className:'page-header' },
+      React.createElement('h1', { className:'page-title' }, `${greeting}, ${user.fullName || user.username}! 👋`),
+      React.createElement('p', { className:'page-subtitle' }, 'Here\'s your quiz activity at a glance')
+    ),
+    !stats ? React.createElement(Loader) : React.createElement('div', null,
+      React.createElement('div', { className:'stats-grid' },
+        React.createElement('div', { className:'stat-card stat-accent-violet animate-fadeUp stagger-1' },
+          React.createElement('div', { className:'stat-label' }, 'Quizzes Created'),
+          React.createElement('div', { className:'stat-value' }, stats.totalQuizzesCreated),
+          React.createElement('div', { className:'stat-sub' }, 'AI-generated')
+        ),
+        React.createElement('div', { className:'stat-card stat-accent-pink animate-fadeUp stagger-2' },
+          React.createElement('div', { className:'stat-label' }, 'Attempts'),
+          React.createElement('div', { className:'stat-value' }, stats.totalAttemptsCompleted),
+          React.createElement('div', { className:'stat-sub' }, 'Completed')
+        ),
+        React.createElement('div', { className:'stat-card stat-accent-teal animate-fadeUp stagger-3' },
+          React.createElement('div', { className:'stat-label' }, 'Avg Score'),
+          React.createElement('div', { className:'stat-value' }, `${Math.round(stats.averageScore||0)}%`),
+          React.createElement('div', { className:'stat-sub' }, 'All time')
+        ),
+        React.createElement('div', { className:'stat-card stat-accent-orange animate-fadeUp stagger-4' },
+          React.createElement('div', { className:'stat-label' }, 'Best Score'),
+          React.createElement('div', { className:'stat-value', style:{color:'var(--warning)'} }, `${Math.round(stats.highestScore||0)}%`),
+          React.createElement('div', { className:'stat-sub' }, 'Personal record')
+        )
+      ),
+      React.createElement('div', { style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:18} },
+        React.createElement('div', { className:'card animate-fadeUp stagger-2' },
+          React.createElement('div', { style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16} },
+            React.createElement('h3', { style:{fontFamily:'Syne'} }, '⚡ Quick Actions'),
+          ),
+          React.createElement('div', { style:{display:'flex',flexDirection:'column',gap:10} },
+            React.createElement('button', { className:'btn btn-primary btn-full', onClick:()=>onNavigate('generate') }, '✨ Generate New Quiz'),
+            React.createElement('button', { className:'btn btn-secondary btn-full', onClick:()=>onNavigate('explore') }, '🌍 Explore Public Quizzes'),
+            React.createElement('button', { className:'btn btn-secondary btn-full', onClick:()=>onNavigate('analytics') }, '📈 View Analytics')
+          )
+        ),
+        React.createElement('div', { className:'card animate-fadeUp stagger-3' },
+          React.createElement('h3', { style:{fontFamily:'Syne',marginBottom:12} }, '🕐 Recent Quizzes'),
+          recentQuizzes.length === 0
+            ? React.createElement('p', { style:{color:'var(--text-dim)',fontSize:'0.85rem'} }, 'No quizzes yet. Generate one!')
+            : React.createElement('div', { style:{display:'flex',flexDirection:'column',gap:8} },
+                recentQuizzes.map(q => React.createElement('div', { key:q.id, style:{padding:'10px 12px',background:'var(--surface2)',borderRadius:'var(--radius-sm)',fontSize:'0.83rem',cursor:'pointer'}, onClick:()=>onNavigate('explore') },
+                  React.createElement('div', { style:{fontWeight:500,marginBottom:3} }, q.title || q.topic),
+                  React.createElement('div', { style:{color:'var(--text-muted)',display:'flex',gap:10} },
+                    React.createElement('span', null, `📝 ${q.numQuestions} Qs`),
+                    difficultyBadge(q.difficulty)
+                  )
+                ))
+              )
+        )
+      )
+    )
+  );
+}
+
+// ─── Main App ──────────────────────────────────────────
+function App() {
+  const [user, setUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('qc_user')); } catch { return null; }
+  });
+  const [page, setPage] = useState('dashboard');
+  const [quizToTake, setQuizToTake] = useState(null);
+  const [quizResult, setQuizResult] = useState(null);
+
+  const logout = () => {
+    localStorage.removeItem('qc_token');
+    localStorage.removeItem('qc_user');
+    setUser(null);
+  };
+
+  if (!user) return React.createElement(AuthPage, { onAuth: setUser });
+
+  const handleTakeQuiz = quiz => {
+    setQuizToTake({ quiz, phase: 'detail' });
+    setQuizResult(null);
+  };
+
+  const handleStartQuiz = fullQuiz => {
+    setQuizToTake({ quiz: fullQuiz, phase: 'take' });
+  };
+
+  const handleResult = result => {
+    setQuizResult(result);
+    setQuizToTake(null);
+  };
+
+  const navItems = [
+    { id:'dashboard', icon:'🏠', label:'Dashboard' },
+    { id:'generate',  icon:'✨', label:'Generate Quiz' },
+    { id:'my-quizzes', icon:'📚', label:'My Quizzes' },
+    { id:'explore',   icon:'🌍', label:'Explore' },
+    { id:'attempts',  icon:'🗂️', label:'My Attempts' },
+    { id:'analytics', icon:'📈', label:'Analytics' },
+  ];
+
+  const renderMain = () => {
+    if (quizResult) return React.createElement(QuizResult, { result: quizResult, onBack: () => { setQuizResult(null); setPage('my-quizzes'); } });
+    if (quizToTake?.phase === 'detail') return React.createElement(QuizDetail, { quiz: quizToTake.quiz, onStart: handleStartQuiz, onBack: () => setQuizToTake(null) });
+    if (quizToTake?.phase === 'take') return React.createElement(TakeQuiz, { quiz: quizToTake.quiz, onResult: handleResult, onBack: () => setQuizToTake(null) });
+    switch(page) {
+      case 'dashboard':  return React.createElement(Dashboard, { onNavigate: setPage });
+      case 'generate':   return React.createElement(GenerateQuiz, { onDone: quiz => { handleTakeQuiz(quiz); } });
+      case 'my-quizzes': return React.createElement(MyQuizzes, { onTake: handleTakeQuiz });
+      case 'explore':    return React.createElement(Explore, { onTake: handleTakeQuiz });
+      case 'attempts':   return React.createElement(MyAttempts, { onViewResult: r => { setQuizResult(r); } });
+      case 'analytics':  return React.createElement(Analytics);
+      default: return null;
+    }
+  };
+
+  const initials = (user.fullName || user.username || 'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+
+  return React.createElement(AuthCtx.Provider, { value: { user, logout } },
+    React.createElement('div', { className:'app-shell' },
+      // Sidebar
+      React.createElement('aside', { className:'sidebar' },
+        React.createElement('div', { className:'sidebar-logo' },
+          React.createElement('div', { className:'logo-icon' }, '🧠'),
+          'QuizCraft AI'
+        ),
+        React.createElement('nav', { className:'sidebar-nav' },
+          navItems.map(n => React.createElement('button', {
+            key:n.id,
+            className:`nav-item ${page === n.id && !quizToTake && !quizResult ? 'active' : ''}`,
+            onClick: () => { setQuizToTake(null); setQuizResult(null); setPage(n.id); }
+          },
+            React.createElement('span', { className:'nav-icon' }, n.icon),
+            n.label
+          ))
+        ),
+        React.createElement('div', { className:'sidebar-bottom' },
+          React.createElement('div', { className:'user-chip' },
+            React.createElement('div', { className:'user-avatar' }, initials),
+            React.createElement('div', { className:'user-info' },
+              React.createElement('div', { className:'user-name' }, user.fullName || user.username),
+              React.createElement('div', { className:'user-role' }, user.role || 'User')
+            ),
+            React.createElement('button', { className:'logout-btn', onClick:logout, title:'Sign out' }, '↩')
+          )
+        )
+      ),
+      // Main
+      React.createElement('main', { className:'main' }, renderMain())
+    )
+  );
+}
+
+// ─── Mount ────────────────────────────────────────────
+ReactDOM.createRoot(document.getElementById('root')).render(
+  React.createElement(ToastProvider, null, React.createElement(App))
+);
+</script>
+</body>
+</html>

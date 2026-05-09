@@ -1,0 +1,5 @@
+com\aiquiz\AiQuizGeneratorApplicationTest.class
+com\aiquiz\LlmResponseParserTest.class
+com\aiquiz\AuthServiceTest.class
+com\aiquiz\PromptBuilderTest.class
+com\aiquiz\JwtUtilTest.class
