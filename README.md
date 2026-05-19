@@ -482,9 +482,9 @@ Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for more informa
 ## 👨‍💻 Author
 
 **Your Name**
-- GitHub: [@YOUR_USERNAME](https://github.com/YOUR_USERNAME)
-- LinkedIn: [Your LinkedIn](https://linkedin.com/in/YOUR_LINKEDIN)
-- Email: your.email@example.com
+- GitHub: [@Saurabh8400](https://github.com/Saurabh8400)
+- LinkedIn: [Saurabh Kumar Pandey](https://www.linkedin.com/in/saurabh-1a6aa2195/)
+- Email: saurabh.pandey222000@gmail.com
 
 ---
 
